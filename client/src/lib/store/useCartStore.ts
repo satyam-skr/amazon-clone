@@ -25,7 +25,8 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await fetchCart();
           set({ items: cart.items }, false, "fetchCart");
-        } catch {
+        } catch (error) {
+          throw error;
         }
       },
 
@@ -33,7 +34,8 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await apiAddToCart(product.id, quantity);
           set({ items: cart.items }, false, "addToCart");
-        } catch {
+        } catch (error) {
+          throw error;
         }
       },
 
@@ -41,7 +43,8 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await apiRemoveFromCart(productId);
           set({ items: cart.items }, false, "removeFromCart");
-        } catch {
+        } catch (error) {
+          throw error;
         }
       },
 
@@ -54,7 +57,8 @@ export const useCartStore = create<CartState>()(
           }
           const cart = await apiUpdateCartItem(productId, quantity);
           set({ items: cart.items }, false, "updateQuantity");
-        } catch {
+        } catch (error) {
+          throw error;
         }
       },
 

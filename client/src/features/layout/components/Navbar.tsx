@@ -12,7 +12,9 @@ export function Navbar() {
 
   const searchQuery = useUIStore((s) => s.searchQuery);
   const setSearchQuery = useUIStore((s) => s.setSearchQuery);
-  const totalItems = useCartStore((s) => s.totalItems);
+  const cartCount = useCartStore((s) =>
+    s.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +122,7 @@ export function Navbar() {
             <div className="relative">
               <ShoppingCart className="size-7" />
               <span className="absolute -right-1.5 -top-1 flex size-5 items-center justify-center rounded-full bg-amazon-orange text-xs font-bold text-[#0F1111]">
-                {totalItems()}
+                {cartCount}
               </span>
             </div>
             <span className="hidden text-sm font-bold sm:inline">Cart</span>

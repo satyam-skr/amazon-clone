@@ -13,8 +13,6 @@ import { ShippingForm } from "@/features/checkout/components/ShippingForm";
 export default function CheckoutPage() {
   const fetchCart = useCartStore((s) => s.fetchCart);
   const items = useCartStore((s) => s.items);
-  const totalPrice = useCartStore((s) => s.totalPrice);
-  const totalItems = useCartStore((s) => s.totalItems);
   const [loadingCart, setLoadingCart] = useState(true);
   const [cartError, setCartError] = useState<string | null>(null);
 
@@ -54,8 +52,11 @@ export default function CheckoutPage() {
     };
   }, [fetchCart]);
 
-  const itemCount = totalItems();
-  const subtotal = totalPrice();
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
   const total = subtotal;
 
   if (loadingCart) {
@@ -263,13 +264,18 @@ export default function CheckoutPage() {
                     {items.map((item) => (
                       <div key={item.product.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                         <div className="relative size-16 shrink-0 overflow-hidden rounded-sm bg-[#F7F7F7]">
-                          <Image
-                            src={`https://placehold.co/120x120/F0F2F2/565959?text=${encodeURIComponent(item.product.title.split(" ").slice(0, 2).join("+"))}`}
-                            alt={item.product.title}
-                            fill
-                            sizes="64px"
-                            className="object-contain p-1"
-                          />
+                          {item.product.image ? (
+                            <Image
+                              src={item.product.image}
+                              alt={item.product.title}
+                              fill
+                              sizes="64px"
+                              loading="lazy"
+                              className="object-contain p-1"
+                            />
+                          ) : (
+                            <div className="h-full w-full" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-1 text-sm text-[#0F1111]">

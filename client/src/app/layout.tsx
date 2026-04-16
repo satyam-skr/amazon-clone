@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { cn } from "@/lib/utils";
-import { Navbar, SubNav, Footer } from "@/features/layout";
+import { Navbar, SubNav, Footer, GlobalToast } from "@/features/layout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +28,7 @@ export default function RootLayout({
         <SubNav />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />
+        <GlobalToast />
       </body>
     </html>
   );

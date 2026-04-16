@@ -5,11 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Container, Button } from "@/ui";
-import { useCartStore } from "@/lib/store";
+import { useCartStore, useUIStore } from "@/lib/store";
 import { getProductById } from "@/api";
 import type { Product } from "@/api/types";
 import { CATEGORY_LABELS } from "@/api/types";
-import { ShieldCheck, Truck, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/features/products/components/RatingStars";
 
@@ -20,7 +20,6 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -29,6 +28,7 @@ export default function ProductDetailPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   const addToCart = useCartStore((s) => s.addToCart);
+  const showToast = useUIStore((s) => s.showToast);
 
   const handleAddToCart = async () => {
     if (!product || addingToCart || buyingNow) return;
@@ -36,6 +36,7 @@ export default function ProductDetailPage() {
     setAddingToCart(true);
     try {
       await addToCart(product, quantity);
+      showToast("Item added to cart");
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch {
@@ -129,14 +130,6 @@ export default function ProductDetailPage() {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  // Generate placeholder gallery images
-  const images = [
-    `https://placehold.co/600x600/F7F7F7/565959?text=${encodeURIComponent(product.title.split(" ").slice(0, 2).join("+"))}`,
-    `https://placehold.co/600x600/F0F0F0/565959?text=Side+View`,
-    `https://placehold.co/600x600/E8E8E8/565959?text=Detail`,
-    `https://placehold.co/600x600/F5F5F5/565959?text=In+Use`,
-  ];
-
   return (
     <div className="bg-white py-4">
       <Container>
@@ -152,59 +145,26 @@ export default function ProductDetailPage() {
         </nav>
 
         <div className="flex flex-col gap-6 md:flex-row md:flex-wrap lg:flex-nowrap">
-          {/* ── Left: Image Gallery ─────────────── */}
+          {/* ── Left: Product Image ─────────────── */}
           <div className="w-full space-y-3 md:w-[calc(50%-12px)] lg:w-[420px] lg:shrink-0">
-            {/* Main image */}
             <div className="relative aspect-square overflow-hidden rounded-sm border border-[#D5D9D9] bg-[#F7F7F7]">
               {product.badge && (
                 <span className="absolute left-3 top-3 z-10 rounded-sm bg-amazon-error px-2 py-0.5 text-xs font-bold text-white">
                   {product.badge}
                 </span>
               )}
-              <Image
-                src={images[currentImage]}
-                alt={product.title}
-                fill
-                sizes="420px"
-                className="object-contain p-6"
-              />
-
-              {/* Prev / Next */}
-              <button
-                onClick={() => setCurrentImage((p) => (p === 0 ? images.length - 1 : p - 1))}
-                className="absolute left-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow hover:bg-white"
-              >
-                <ChevronLeft className="size-5 text-[#0F1111]" />
-              </button>
-              <button
-                onClick={() => setCurrentImage((p) => (p === images.length - 1 ? 0 : p + 1))}
-                className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 shadow hover:bg-white"
-              >
-                <ChevronRight className="size-5 text-[#0F1111]" />
-              </button>
-            </div>
-
-            {/* Thumbnails */}
-            <div className="flex gap-2">
-              {images.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentImage(i)}
-                  className={`relative size-16 overflow-hidden rounded-sm border-2 transition-colors ${
-                    currentImage === i
-                      ? "border-amazon-orange"
-                      : "border-[#D5D9D9] hover:border-amazon-teal"
-                  }`}
-                >
-                  <Image
-                    src={src}
-                    alt={`View ${i + 1}`}
-                    fill
-                    sizes="64px"
-                    className="object-contain p-1"
-                  />
-                </button>
-              ))}
+              {product.image ? (
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  fill
+                  sizes="420px"
+                  loading="lazy"
+                  className="object-contain p-6"
+                />
+              ) : (
+                <div className="h-full w-full" />
+              )}
             </div>
           </div>
 

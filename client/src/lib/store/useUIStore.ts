@@ -5,8 +5,11 @@ import type { ProductCategory } from "@/api/types";
 interface UIState {
   searchQuery: string;
   selectedCategory: ProductCategory | null;
+  toastMessage: string | null;
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (category: ProductCategory | null) => void;
+  showToast: (message: string) => void;
+  clearToast: () => void;
   clearFilters: () => void;
 }
 
@@ -15,6 +18,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       searchQuery: "",
       selectedCategory: null,
+      toastMessage: null,
 
       setSearchQuery: (query) =>
         set({ searchQuery: query }, false, "setSearchQuery"),
@@ -22,9 +26,15 @@ export const useUIStore = create<UIState>()(
       setSelectedCategory: (category) =>
         set({ selectedCategory: category }, false, "setSelectedCategory"),
 
+      showToast: (message) =>
+        set({ toastMessage: message }, false, "showToast"),
+
+      clearToast: () =>
+        set({ toastMessage: null }, false, "clearToast"),
+
       clearFilters: () =>
         set(
-          { searchQuery: "", selectedCategory: null },
+          { searchQuery: "", selectedCategory: null, toastMessage: null },
           false,
           "clearFilters"
         ),

@@ -1,1 +1,1 @@
-export { Navbar, SubNav, Footer } from "./components";
+export { Navbar, SubNav, Footer, GlobalToast } from "./components";

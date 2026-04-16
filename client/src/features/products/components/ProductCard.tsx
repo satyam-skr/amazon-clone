@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Product } from "@/api/types";
 import { Button } from "@/ui";
-import { useCartStore } from "@/lib/store";
+import { useCartStore, useUIStore } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "./RatingStars";
 
@@ -16,6 +16,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const addToCart = useCartStore((s) => s.addToCart);
+  const showToast = useUIStore((s) => s.showToast);
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const discount = product.originalPrice
@@ -28,6 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
     setAdding(true);
     try {
       await addToCart(product);
+      showToast("Item added to cart");
     } catch {
       setAddError("Unable to add this item right now.");
     } finally {
@@ -45,13 +47,18 @@ export function ProductCard({ product }: ProductCardProps) {
           </span>
         )}
         <div className="relative mx-auto aspect-square w-full max-w-[200px]">
-          <Image
-            src={`https://placehold.co/300x300/F0F2F2/565959?text=${encodeURIComponent(product.title.split(" ").slice(0, 2).join("+"))}`}
-            alt={product.title}
-            fill
-            sizes="200px"
-            className="object-contain transition-transform duration-200 group-hover:scale-105"
-          />
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.title}
+              fill
+              sizes="200px"
+              loading="lazy"
+              className="object-contain transition-transform duration-200 group-hover:scale-105"
+            />
+          ) : (
+            <div className="h-full w-full" />
+          )}
         </div>
       </Link>
 

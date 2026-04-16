@@ -52,13 +52,18 @@ export function CartItemRow({ item }: { item: CartItem }) {
         href={`/product/${product.id}`}
         className="relative size-[180px] shrink-0 overflow-hidden rounded-sm bg-[#F7F7F7] max-sm:size-[120px]"
       >
-        <Image
-          src={`https://placehold.co/300x300/F0F2F2/565959?text=${encodeURIComponent(product.title.split(" ").slice(0, 2).join("+"))}`}
-          alt={product.title}
-          fill
-          sizes="180px"
-          className="object-contain p-3"
-        />
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            sizes="180px"
+            loading="lazy"
+            className="object-contain p-3"
+          />
+        ) : (
+          <div className="h-full w-full" />
+        )}
       </Link>
 
       {/* Details */}

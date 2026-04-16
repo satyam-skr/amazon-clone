@@ -11,8 +11,6 @@ import { formatPrice } from "@/lib/utils";
 export default function CartPage() {
   const fetchCart = useCartStore((s) => s.fetchCart);
   const items = useCartStore((s) => s.items);
-  const totalPrice = useCartStore((s) => s.totalPrice);
-  const totalItems = useCartStore((s) => s.totalItems);
   const clearCart = useCartStore((s) => s.clearCart);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,8 +49,11 @@ export default function CartPage() {
     }
   };
 
-  const itemCount = totalItems();
-  const subtotal = totalPrice();
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
 
   if (loading) {
     return (
