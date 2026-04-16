@@ -5,12 +5,12 @@
 export interface Product {
   id: string;
   title: string;
-  description: string;
-  highlights: string[];
+  description?: string;
+  highlights?: string[];
   price: number;
   originalPrice?: number;
-  image: string;
-  category: ProductCategory;
+  image?: string;
+  category: string;
   rating: {
     average: number;
     count: number;

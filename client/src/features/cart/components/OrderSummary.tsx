@@ -49,12 +49,12 @@ export function OrderSummary({ itemCount, subtotal }: OrderSummaryProps) {
       {/* EMI notice */}
       <p className="mt-3 text-xs text-[#565959]">
         EMI Available.{" "}
-        <a
-          href="#"
+        <Link
+          href="/"
           className="text-amazon-teal hover:text-amazon-link-hover hover:underline"
         >
           Learn more
-        </a>
+        </Link>
       </p>
     </div>
   );

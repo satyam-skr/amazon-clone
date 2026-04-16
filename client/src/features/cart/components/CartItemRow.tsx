@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useCartStore } from "@/lib/store";
 import type { CartItem } from "@/lib/store";
@@ -8,6 +9,9 @@ import { formatPrice } from "@/lib/utils";
 export function CartItemRow({ item }: { item: CartItem }) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeFromCart = useCartStore((s) => s.removeFromCart);
+  const [updating, setUpdating] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const { product, quantity } = item;
 
   const discount = product.originalPrice
@@ -15,6 +19,31 @@ export function CartItemRow({ item }: { item: CartItem }) {
         ((product.originalPrice - product.price) / product.originalPrice) * 100
       )
     : 0;
+
+  const handleUpdateQuantity = async (nextQuantity: number) => {
+    if (updating || removing) return;
+    setActionError(null);
+    setUpdating(true);
+    try {
+      await updateQuantity(product.id, nextQuantity);
+    } catch {
+      setActionError("Unable to update quantity.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (updating || removing) return;
+    setActionError(null);
+    setRemoving(true);
+    try {
+      await removeFromCart(product.id);
+    } catch {
+      setActionError("Unable to remove item.");
+      setRemoving(false);
+    }
+  };
 
   return (
     <div className="flex gap-4 border-b border-[#D5D9D9] py-4 last:border-b-0">
@@ -66,7 +95,8 @@ export function CartItemRow({ item }: { item: CartItem }) {
           {/* Quantity selector */}
           <div className="flex items-center overflow-hidden rounded-md border border-[#D5D9D9] shadow-amz-btn">
             <button
-              onClick={() => updateQuantity(product.id, quantity - 1)}
+              onClick={() => handleUpdateQuantity(quantity - 1)}
+              disabled={updating || removing}
               className="flex size-8 items-center justify-center bg-[#F0F2F2] text-sm font-bold text-[#0F1111] transition-colors hover:bg-[#E3E6E6]"
             >
               −
@@ -75,8 +105,8 @@ export function CartItemRow({ item }: { item: CartItem }) {
               {quantity}
             </span>
             <button
-              onClick={() => updateQuantity(product.id, quantity + 1)}
-              disabled={quantity >= Math.min(product.stock, 10)}
+              onClick={() => handleUpdateQuantity(quantity + 1)}
+              disabled={updating || removing || quantity >= Math.min(product.stock, 10)}
               className="flex size-8 items-center justify-center bg-[#F0F2F2] text-sm font-bold text-[#0F1111] transition-colors hover:bg-[#E3E6E6] disabled:opacity-40"
             >
               +
@@ -87,11 +117,12 @@ export function CartItemRow({ item }: { item: CartItem }) {
 
           {/* Delete */}
           <button
-            onClick={() => removeFromCart(product.id)}
+            onClick={handleRemove}
+            disabled={updating || removing}
             className="flex items-center gap-1 text-sm text-amazon-teal hover:text-amazon-link-hover hover:underline"
           >
             <Trash2 className="size-3.5" />
-            Delete
+            {removing ? "Removing..." : "Delete"}
           </button>
 
           <span className="text-[#D5D9D9]">|</span>
@@ -99,6 +130,10 @@ export function CartItemRow({ item }: { item: CartItem }) {
           <button className="text-sm text-amazon-teal hover:text-amazon-link-hover hover:underline">
             Save for later
           </button>
+
+          {actionError && (
+            <span className="text-xs text-amazon-error">{actionError}</span>
+          )}
         </div>
       </div>
 

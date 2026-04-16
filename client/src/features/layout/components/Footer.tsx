@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Container } from "@/ui";
 
 const footerSections = [
@@ -57,12 +58,12 @@ export function Footer() {
                 <ul className="space-y-2">
                   {section.links.map((link) => (
                     <li key={link}>
-                      <a
-                        href="#"
+                      <Link
+                        href="/"
                         className="text-sm text-[#DDDDDD] hover:text-white hover:underline"
                       >
                         {link}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -77,21 +78,21 @@ export function Footer() {
         <Container>
           <div className="flex flex-col items-center gap-4">
             {/* Logo */}
-            <a href="/" className="text-lg font-bold text-white hover:no-underline">
+            <Link href="/" className="text-lg font-bold text-white hover:no-underline">
               amazon<span className="text-amazon-orange">.in</span>
-            </a>
+            </Link>
 
             {/* Bottom links */}
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[#999999]">
-              <a href="#" className="hover:text-white hover:underline">
+              <Link href="/" className="hover:text-white hover:underline">
                 Conditions of Use &amp; Sale
-              </a>
-              <a href="#" className="hover:text-white hover:underline">
+              </Link>
+              <Link href="/" className="hover:text-white hover:underline">
                 Privacy Notice
-              </a>
-              <a href="#" className="hover:text-white hover:underline">
+              </Link>
+              <Link href="/" className="hover:text-white hover:underline">
                 Interest-Based Ads
-              </a>
+              </Link>
             </div>
 
             <p className="text-xs text-[#999999]">

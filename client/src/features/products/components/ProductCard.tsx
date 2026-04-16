@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { Product } from "@/api/types";
 import { Button } from "@/ui";
 import { useCartStore } from "@/lib/store";
@@ -15,9 +16,24 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const addToCart = useCartStore((s) => s.addToCart);
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+
+  const handleAddToCart = async () => {
+    if (adding) return;
+    setAddError(null);
+    setAdding(true);
+    try {
+      await addToCart(product);
+    } catch {
+      setAddError("Unable to add this item right now.");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-sm border border-[#D5D9D9] bg-white transition-shadow duration-200 hover:shadow-amz-card-hover">
@@ -98,11 +114,14 @@ export function ProductCard({ product }: ProductCardProps) {
           variant="primary"
           size="default"
           className="w-full"
-          onClick={() => addToCart(product)}
-          disabled={product.stock === 0}
+          onClick={handleAddToCart}
+          disabled={product.stock === 0 || adding}
         >
-          {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+          {product.stock === 0 ? "Out of Stock" : adding ? "Adding..." : "Add to Cart"}
         </Button>
+        {addError && (
+          <p className="mt-1 text-xs text-amazon-error">{addError}</p>
+        )}
       </div>
     </div>
   );

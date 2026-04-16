@@ -3,42 +3,78 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Container, Button } from "@/ui";
 import { useCartStore } from "@/lib/store";
 import { getProductById } from "@/api";
 import type { Product } from "@/api/types";
 import { CATEGORY_LABELS } from "@/api/types";
-import { Star, ShieldCheck, Truck, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Truck, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/features/products/components/RatingStars";
 
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const addToCart = useCartStore((s) => s.addToCart);
 
   const handleAddToCart = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await addToCart(product!, quantity);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    if (!product || addingToCart || buyingNow) return;
+    setActionError(null);
+    setAddingToCart(true);
+    try {
+      await addToCart(product, quantity);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    } catch {
+      setActionError("Unable to add item to cart. Please try again.");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!product || addingToCart || buyingNow) return;
+    setActionError(null);
+    setBuyingNow(true);
+    try {
+      await addToCart(product, quantity);
+      router.push("/checkout");
+    } catch {
+      setActionError("Unable to continue to checkout right now.");
+      setBuyingNow(false);
+    }
   };
 
   useEffect(() => {
     if (id) {
-      getProductById(id).then((data) => {
-        setProduct(data ?? null);
-        setLoading(false);
-      });
+      setLoading(true);
+      setLoadError(null);
+      setProduct(null);
+      getProductById(id)
+        .then((data) => {
+          setProduct(data ?? null);
+        })
+        .catch(() => {
+          setLoadError("We couldn't load this product. Please try again.");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
-  }, [id]);
+  }, [id, reloadKey]);
 
   if (loading) {
     return (
@@ -53,6 +89,24 @@ export default function ProductDetailPage() {
             </div>
             <div className="h-64 animate-pulse rounded bg-white" />
           </div>
+        </Container>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="bg-background py-16">
+        <Container className="text-center">
+          <h1 className="text-xl font-bold text-[#0F1111]">Something went wrong</h1>
+          <p className="mt-2 text-sm text-[#565959]">{loadError}</p>
+          <Button
+            variant="primary"
+            className="mt-4"
+            onClick={() => setReloadKey((k) => k + 1)}
+          >
+            Try Again
+          </Button>
         </Container>
       </div>
     );
@@ -92,7 +146,7 @@ export default function ProductDetailPage() {
             Home
           </Link>
           <span>›</span>
-          <span className="text-amazon-teal">{CATEGORY_LABELS[product.category]}</span>
+          <span className="text-amazon-teal">{CATEGORY_LABELS[product.category as keyof typeof CATEGORY_LABELS] ?? product.category}</span>
           <span>›</span>
           <span className="line-clamp-1">{product.title}</span>
         </nav>
@@ -189,11 +243,11 @@ export default function ProductDetailPage() {
             <hr className="border-[#E7E7E7]" />
 
             {/* Highlights */}
-            {product.highlights.length > 0 && (
+            {(product.highlights?.length ?? 0) > 0 && (
               <div>
                 <h3 className="mb-2 text-sm font-bold text-[#0F1111]">About this item</h3>
                 <ul className="list-disc space-y-1 pl-5">
-                  {product.highlights.map((h) => (
+                  {product.highlights!.map((h) => (
                     <li key={h} className="text-sm text-[#333]">{h}</li>
                   ))}
                 </ul>
@@ -246,6 +300,7 @@ export default function ProductDetailPage() {
                   <select
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
+                    disabled={addingToCart || buyingNow}
                     className="h-[29px] rounded-md border border-[#D5D9D9] bg-[#F0F2F2] px-2 text-sm shadow-amz-btn"
                   >
                     {Array.from({ length: Math.min(product.stock, 10) }).map((_, i) => (
@@ -264,17 +319,23 @@ export default function ProductDetailPage() {
                     variant={added ? "outline" : "primary"}
                     className="w-full rounded-full transition-colors duration-300"
                     onClick={handleAddToCart}
+                    disabled={addingToCart || buyingNow}
                   >
-                    {added ? "✓ Added to Cart" : "Add to Cart"}
+                    {addingToCart ? "Adding..." : added ? "✓ Added to Cart" : "Add to Cart"}
                   </Button>
                   <Button
                     variant="secondary"
                     className="w-full rounded-full"
-                    onClick={() => addToCart(product, quantity)}
+                    onClick={handleBuyNow}
+                    disabled={addingToCart || buyingNow}
                   >
-                    Buy Now
+                    {buyingNow ? "Redirecting..." : "Buy Now"}
                   </Button>
                 </div>
+              )}
+
+              {actionError && (
+                <p className="text-xs text-amazon-error">{actionError}</p>
               )}
 
               {/* Trust badges */}

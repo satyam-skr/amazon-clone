@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Container, Button } from "@/ui";
@@ -11,9 +11,12 @@ import { useCheckout } from "@/features/checkout/hooks/useCheckout";
 import { ShippingForm } from "@/features/checkout/components/ShippingForm";
 
 export default function CheckoutPage() {
+  const fetchCart = useCartStore((s) => s.fetchCart);
   const items = useCartStore((s) => s.items);
   const totalPrice = useCartStore((s) => s.totalPrice);
   const totalItems = useCartStore((s) => s.totalItems);
+  const [loadingCart, setLoadingCart] = useState(true);
+  const [cartError, setCartError] = useState<string | null>(null);
 
   const {
     form,
@@ -22,15 +25,76 @@ export default function CheckoutPage() {
     setPaymentMethod,
     placed,
     placingOrder,
+    orderError,
     step,
     setStep,
     isFormValid,
     handlePlaceOrder
   } = useCheckout();
 
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoadingCart(true);
+    setCartError(null);
+    fetchCart()
+      .catch(() => {
+        if (!cancelled) {
+          setCartError("Unable to load cart items right now.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingCart(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCart]);
+
   const itemCount = totalItems();
   const subtotal = totalPrice();
   const total = subtotal;
+
+  if (loadingCart) {
+    return (
+      <div className="bg-background py-4">
+        <div className="border-b border-[#D5D9D9] bg-white">
+          <Container className="flex h-[50px] items-center justify-between">
+            <div className="h-5 w-40 animate-pulse rounded bg-[#F0F2F2]" />
+            <div className="size-5 animate-pulse rounded-full bg-[#F0F2F2]" />
+          </Container>
+        </div>
+        <Container className="py-4">
+          <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+            <div className="space-y-4">
+              <div className="h-10 animate-pulse rounded bg-[#F0F2F2]" />
+              <div className="h-64 animate-pulse rounded-sm border border-[#D5D9D9] bg-white" />
+              <div className="h-48 animate-pulse rounded-sm border border-[#D5D9D9] bg-white" />
+            </div>
+            <div className="h-64 animate-pulse rounded-sm border border-[#D5D9D9] bg-white" />
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  if (cartError) {
+    return (
+      <div className="bg-background py-8">
+        <Container variant="narrow" className="text-center">
+          <div className="rounded-sm border border-[#D5D9D9] bg-white p-8 shadow-amz-card">
+            <h1 className="text-xl font-medium text-[#0F1111]">
+              Couldn&apos;t load checkout.
+            </h1>
+            <p className="mt-2 text-sm text-[#565959]">{cartError}</p>
+          </div>
+        </Container>
+      </div>
+    );
+  }
 
   // ── Empty cart redirect ──────────────────────
   if (items.length === 0 && !placed) {
@@ -77,7 +141,8 @@ export default function CheckoutPage() {
             {/* Step indicator */}
             <div className="flex items-center gap-2 text-sm">
               <button
-                onClick={() => setStep(1)}
+                onClick={() => !placingOrder && setStep(1)}
+                disabled={placingOrder}
                 className={`rounded-full px-3 py-1 font-medium ${
                   step === 1
                     ? "bg-amazon-orange text-[#0F1111]"
@@ -88,7 +153,8 @@ export default function CheckoutPage() {
               </button>
               <ChevronRight className="size-4 text-[#D5D9D9]" />
               <button
-                onClick={() => isFormValid && setStep(2)}
+                onClick={() => isFormValid && !placingOrder && setStep(2)}
+                disabled={placingOrder}
                 className={`rounded-full px-3 py-1 font-medium ${
                   step === 2
                     ? "bg-amazon-orange text-[#0F1111]"
@@ -99,7 +165,8 @@ export default function CheckoutPage() {
               </button>
               <ChevronRight className="size-4 text-[#D5D9D9]" />
               <button
-                onClick={() => isFormValid && setStep(3)}
+                onClick={() => isFormValid && !placingOrder && setStep(3)}
+                disabled={placingOrder}
                 className={`rounded-full px-3 py-1 font-medium ${
                   step === 3
                     ? "bg-amazon-orange text-[#0F1111]"
@@ -115,8 +182,8 @@ export default function CheckoutPage() {
               <ShippingForm
                 form={form}
                 update={updateForm}
-                isFormValid={isFormValid as boolean}
-                onContinue={() => setStep(2)}
+                isFormValid={isFormValid as boolean && !placingOrder}
+                onContinue={() => !placingOrder && setStep(2)}
               />
             )}
 
@@ -141,6 +208,7 @@ export default function CheckoutPage() {
                         type="radio"
                         name="payment"
                         checked={paymentMethod === method.value}
+                        disabled={placingOrder}
                         onChange={() => setPaymentMethod(method.value)}
                         className="size-4 accent-amazon-orange"
                       />
@@ -154,6 +222,7 @@ export default function CheckoutPage() {
                   size="lg"
                   className="mt-6"
                   onClick={() => setStep(3)}
+                  disabled={placingOrder}
                 >
                   Continue
                 </Button>
@@ -170,7 +239,8 @@ export default function CheckoutPage() {
                       Shipping Address
                     </h3>
                     <button
-                      onClick={() => setStep(1)}
+                      onClick={() => !placingOrder && setStep(1)}
+                      disabled={placingOrder}
                       className="text-sm text-amazon-teal hover:underline"
                     >
                       Change
@@ -236,6 +306,9 @@ export default function CheckoutPage() {
                       {placingOrder ? "Placing Order..." : "Place Order"}
                     </Button>
                   </div>
+                  {orderError && (
+                    <p className="mt-3 text-sm text-amazon-error">{orderError}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -248,14 +321,19 @@ export default function CheckoutPage() {
               className="w-full rounded-lg"
               size="lg"
               onClick={() => {
+                if (placingOrder) return;
                 if (step === 1 && isFormValid) setStep(2);
                 else if (step === 2) setStep(3);
                 else if (step === 3) handlePlaceOrder();
               }}
-              disabled={step === 1 && !isFormValid}
+              disabled={placingOrder || (step === 1 && !isFormValid)}
             >
-              {step === 3 ? "Place Order" : "Continue"}
+              {placingOrder ? "Processing..." : step === 3 ? "Place Order" : "Continue"}
             </Button>
+
+            {orderError && (
+              <p className="mt-2 text-xs text-amazon-error">{orderError}</p>
+            )}
 
             <hr className="my-4 border-[#D5D9D9]" />
 

@@ -31,6 +31,7 @@ export function useCheckout() {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [placed, setPlaced] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   const updateForm = (field: keyof ShippingFormData, value: string) =>
@@ -45,14 +46,17 @@ export function useCheckout() {
     form.state !== "";
 
   const handlePlaceOrder = async () => {
+    if (placingOrder) return;
+    setOrderError(null);
     setPlacingOrder(true);
     try {
       const order = await createOrder(form, paymentMethod);
       setPlaced(true);
-      clearCart();
+      await clearCart();
       router.push(`/order-success?orderId=${order.id}`);
-    } catch (error) {
-      console.error("Failed to place order:", error);
+    } catch {
+      setOrderError("Unable to place your order. Please try again.");
+    } finally {
       setPlacingOrder(false);
     }
   };
@@ -64,6 +68,7 @@ export function useCheckout() {
     setPaymentMethod,
     placed,
     placingOrder,
+    orderError,
     step,
     setStep,
     isFormValid,

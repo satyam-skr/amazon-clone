@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Container } from "@/ui";
 import { useUIStore } from "@/lib/store";
 import { useCartStore } from "@/lib/store";
@@ -33,7 +34,7 @@ export function Navbar() {
           </button>
 
           {/* Logo */}
-          <a
+          <Link
             href="/"
             className="flex shrink-0 items-center border border-transparent px-2 py-1.5 hover:border-white hover:no-underline"
           >
@@ -41,7 +42,7 @@ export function Navbar() {
               amazon
               <span className="text-amazon-orange">.in</span>
             </span>
-          </a>
+          </Link>
 
           {/* Location selector */}
           <button className="hidden shrink-0 items-center gap-0.5 border border-transparent px-2 py-1.5 text-white hover:border-white md:flex">
@@ -91,8 +92,8 @@ export function Navbar() {
 
           {/* Right nav items */}
           <div className="hidden shrink-0 items-center gap-1 lg:flex">
-            <a
-              href="#"
+            <Link
+              href="/"
               className="flex flex-col border border-transparent px-2 py-1.5 leading-tight text-white hover:border-white hover:no-underline"
             >
               <span className="text-2xs text-[#CCCCCC]">Hello, sign in</span>
@@ -100,19 +101,19 @@ export function Navbar() {
                 Account &amp; Lists
                 <ChevronDown className="ml-0.5 size-3" />
               </span>
-            </a>
+            </Link>
 
-            <a
-              href="#"
+            <Link
+              href="/order-success"
               className="flex flex-col border border-transparent px-2 py-1.5 leading-tight text-white hover:border-white hover:no-underline"
             >
               <span className="text-2xs text-[#CCCCCC]">Returns</span>
               <span className="text-sm font-bold">&amp; Orders</span>
-            </a>
+            </Link>
           </div>
 
           {/* Cart */}
-          <a
+          <Link
             href="/cart"
             className="relative flex shrink-0 items-end gap-0.5 border border-transparent px-2 py-1.5 text-white hover:border-white hover:no-underline"
           >
@@ -123,7 +124,7 @@ export function Navbar() {
               </span>
             </div>
             <span className="hidden text-sm font-bold sm:inline">Cart</span>
-          </a>
+          </Link>
         </Container>
       </div>
 
@@ -131,12 +132,12 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="border-t border-amazon-navy-mid bg-amazon-navy-light lg:hidden">
           <Container className="flex flex-col gap-2 py-3 text-sm text-white">
-            <a href="#" className="rounded px-3 py-2 hover:bg-amazon-navy-mid hover:no-underline">
+            <Link href="/" className="rounded px-3 py-2 hover:bg-amazon-navy-mid hover:no-underline">
               Account &amp; Lists
-            </a>
-            <a href="#" className="rounded px-3 py-2 hover:bg-amazon-navy-mid hover:no-underline">
+            </Link>
+            <Link href="/order-success" className="rounded px-3 py-2 hover:bg-amazon-navy-mid hover:no-underline">
               Returns &amp; Orders
-            </a>
+            </Link>
             <button className="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-amazon-navy-mid">
               <MapPin className="size-4" />
               Deliver to India

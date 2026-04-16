@@ -1,14 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Container, Button } from "@/ui";
 import { CheckCircle2, ChevronRight, Package, Truck } from "lucide-react";
-import { Suspense } from "react";
 
-function OrderSuccessContent() {
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId") || `AMZ-${Date.now().toString().slice(-8)}`;
+function OrderSuccessContent({ orderId }: { orderId: string }) {
 
   return (
     <div className="bg-background py-8 text-[#0F1111]">
@@ -52,7 +46,7 @@ function OrderSuccessContent() {
             <div className="flex items-center gap-3">
               <Package className="size-5 shrink-0 text-[#565959]" />
               <p className="text-sm">
-                <strong>We're preparing your order.</strong> You can track your
+                <strong>We&apos;re preparing your order.</strong> You can track your
                 delivery in Your Orders.
               </p>
             </div>
@@ -60,9 +54,11 @@ function OrderSuccessContent() {
 
           {/* Action Links */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button variant="primary" className="w-full sm:w-auto">
-              Review or edit your recent orders
-            </Button>
+            <Link href="/" className="w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto">
+                Review or edit your recent orders
+              </Button>
+            </Link>
             <Link
               href="/"
               className="group flex items-center justify-center text-sm font-medium text-amazon-teal hover:text-amazon-link-hover hover:underline"
@@ -77,16 +73,13 @@ function OrderSuccessContent() {
   );
 }
 
-export default function OrderSuccessPage() {
-  return (
-    <Suspense fallback={
-      <div className="bg-background py-8">
-        <Container variant="narrow">
-          <div className="h-[300px] animate-pulse rounded-sm border border-[#D5D9D9] bg-white shadow-amz-card" />
-        </Container>
-      </div>
-    }>
-      <OrderSuccessContent />
-    </Suspense>
-  );
+export default async function OrderSuccessPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ orderId?: string }>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const orderId = resolvedSearchParams?.orderId || `AMZ-${Date.now().toString().slice(-8)}`;
+
+  return <OrderSuccessContent orderId={orderId} />;
 }

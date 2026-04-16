@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Container, Button } from "@/ui";
 import { useCartStore } from "@/lib/store";
-import type { CartItem } from "@/lib/store";
 import { CartItemRow } from "@/features/cart/components/CartItemRow";
 import { OrderSummary } from "@/features/cart/components/OrderSummary";
 import { formatPrice } from "@/lib/utils";
@@ -16,13 +14,82 @@ export default function CartPage() {
   const totalPrice = useCartStore((s) => s.totalPrice);
   const totalItems = useCartStore((s) => s.totalItems);
   const clearCart = useCartStore((s) => s.clearCart);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+    fetchCart()
+      .catch(() => {
+        if (!cancelled) {
+          setError("Unable to load cart right now.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCart, reloadKey]);
+
+  const handleClearCart = async () => {
+    if (clearing) return;
+    setClearing(true);
+    try {
+      await clearCart();
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const itemCount = totalItems();
   const subtotal = totalPrice();
+
+  if (loading) {
+    return (
+      <div className="bg-background py-8">
+        <Container>
+          <div className="rounded-sm border border-[#D5D9D9] bg-white p-8 shadow-amz-card">
+            <div className="h-8 w-48 animate-pulse rounded bg-[#F0F2F2]" />
+            <div className="mt-4 h-28 animate-pulse rounded bg-[#F7F7F7]" />
+            <div className="mt-3 h-28 animate-pulse rounded bg-[#F7F7F7]" />
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-background py-8">
+        <Container>
+          <div className="rounded-sm border border-[#D5D9D9] bg-white p-8 shadow-amz-card">
+            <h1 className="text-2xl font-medium text-[#0F1111]">
+              Couldn&apos;t load your cart.
+            </h1>
+            <p className="mt-2 text-sm text-[#565959]">{error}</p>
+            <Button
+              variant="primary"
+              size="lg"
+              className="mt-6"
+              onClick={() => setReloadKey((k) => k + 1)}
+            >
+              Try Again
+            </Button>
+          </div>
+        </Container>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -64,10 +131,11 @@ export default function CartPage() {
                 Shopping Cart
               </h1>
               <button
-                onClick={clearCart}
+                onClick={handleClearCart}
+                disabled={clearing}
                 className="text-sm text-amazon-teal hover:text-amazon-link-hover hover:underline"
               >
-                Deselect all items
+                {clearing ? "Updating..." : "Deselect all items"}
               </button>
             </div>
 

@@ -9,10 +9,12 @@ interface CartState {
   addToCart: (product: Product, quantity?: number) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   totalPrice: () => number;
   totalItems: () => number;
 }
+
+export type { CartItem };
 
 export const useCartStore = create<CartState>()(
   devtools(
@@ -23,8 +25,7 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await fetchCart();
           set({ items: cart.items }, false, "fetchCart");
-        } catch (error) {
-          console.error("Failed to fetch cart:", error);
+        } catch {
         }
       },
 
@@ -32,8 +33,7 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await apiAddToCart(product.id, quantity);
           set({ items: cart.items }, false, "addToCart");
-        } catch (error) {
-          console.error("Failed to add to cart:", error);
+        } catch {
         }
       },
 
@@ -41,8 +41,7 @@ export const useCartStore = create<CartState>()(
         try {
           const cart = await apiRemoveFromCart(productId);
           set({ items: cart.items }, false, "removeFromCart");
-        } catch (error) {
-          console.error("Failed to remove from cart:", error);
+        } catch {
         }
       },
 
@@ -55,12 +54,22 @@ export const useCartStore = create<CartState>()(
           }
           const cart = await apiUpdateCartItem(productId, quantity);
           set({ items: cart.items }, false, "updateQuantity");
-        } catch (error) {
-          console.error("Failed to update quantity:", error);
+        } catch {
         }
       },
 
-      clearCart: () => set({ items: [] }, false, "clearCart"),
+      clearCart: async () => {
+        const currentItems = get().items;
+
+        try {
+          await Promise.all(
+            currentItems.map((item) => apiRemoveFromCart(item.product.id))
+          );
+          set({ items: [] }, false, "clearCart");
+        } catch {
+          await get().fetchCart();
+        }
+      },
 
       totalPrice: () =>
         get().items.reduce(

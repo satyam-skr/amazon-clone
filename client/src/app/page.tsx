@@ -1,40 +1,55 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Container } from "@/ui";
+import { Container, Button } from "@/ui";
 import { ProductCard } from "@/features/products";
 import { useUIStore } from "@/lib/store";
 import type { Product, ProductCategory } from "@/api/types";
 import { CATEGORY_LABELS } from "@/api/types";
-import { getProducts, searchProducts, filterByCategory } from "@/api";
+import { getProducts } from "@/api";
 
 const allCategories = Object.entries(CATEGORY_LABELS) as [ProductCategory, string][];
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const searchQuery = useUIStore((s) => s.searchQuery);
   const selectedCategory = useUIStore((s) => s.selectedCategory);
   const setSelectedCategory = useUIStore((s) => s.setSelectedCategory);
 
   useEffect(() => {
+    let cancelled = false;
+
     setLoading(true);
-    let promise: Promise<Product[]>;
+    setError(null);
+    getProducts({
+      search: searchQuery.trim() || undefined,
+      categoryId: selectedCategory ?? undefined,
+    })
+      .then((data) => {
+        if (!cancelled) {
+          setProducts(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError("We couldn't load products. Please try again.");
+          setProducts([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
 
-    if (searchQuery.trim()) {
-      promise = searchProducts(searchQuery);
-    } else if (selectedCategory) {
-      promise = filterByCategory(selectedCategory);
-    } else {
-      promise = getProducts();
-    }
-
-    promise.then((data) => {
-      setProducts(data);
-      setLoading(false);
-    });
-  }, [searchQuery, selectedCategory]);
+    return () => {
+      cancelled = true;
+    };
+  }, [searchQuery, selectedCategory, reloadKey]);
 
   return (
     <div className="bg-background py-4">
@@ -111,6 +126,8 @@ export default function Home() {
                 <span className="text-sm text-[#565959]">
                   {loading
                     ? "Loading..."
+                    : error
+                      ? "Unable to load results"
                     : `1–${products.length} of ${products.length} results`}
                 </span>
                 {(searchQuery || selectedCategory) && (
@@ -155,6 +172,22 @@ export default function Home() {
                     className="h-[420px] animate-pulse rounded-sm border border-[#D5D9D9] bg-white"
                   />
                 ))}
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center rounded-sm border border-[#D5D9D9] bg-white px-4 py-20 shadow-amz-card">
+                <p className="text-xl font-medium text-[#0F1111]">
+                  Something went wrong.
+                </p>
+                <p className="mt-2 text-center text-sm text-[#565959]">
+                  {error}
+                </p>
+                <Button
+                  variant="primary"
+                  className="mt-4"
+                  onClick={() => setReloadKey((k) => k + 1)}
+                >
+                  Try Again
+                </Button>
               </div>
             ) : products.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-sm border border-[#D5D9D9] bg-white px-4 py-24 shadow-amz-card">

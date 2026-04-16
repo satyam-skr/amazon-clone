@@ -5,7 +5,7 @@
  * error normalisation so every fetch in the app goes through one path.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, '');
 
 type RequestOptions = RequestInit & {
   params?: Record<string, string | number | boolean>;
@@ -25,8 +25,8 @@ async function request<T>(
   endpoint: string,
   { params, ...options }: RequestOptions = {}
 ): Promise<T> {
-  // Use a dummy base for parsing if BASE_URL is relative, otherwise it parses the full absolute URL
-  const url = new URL(`${BASE_URL}/api/v1${endpoint}`.replace(/\/+/g, '/').replace(':/', '://'), "http://localhost");
+  const path = `/api/v1${endpoint}`.replace(/\/+/g, '/');
+  const url = new URL(`${BASE_URL}${path}`);
 
   if (params) {
     Object.entries(params).forEach(([k, v]) =>
