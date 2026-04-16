@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const validate_middleware_1 = require("../../middlewares/validate.middleware");
+const controller_1 = require("./controller");
+const schema_1 = require("./schema");
+const router = (0, express_1.Router)();
+router.get("/", (0, validate_middleware_1.validate)(schema_1.guestIdHeaderSchema, "headers"), controller_1.getCartController);
+router.post("/add", (0, validate_middleware_1.validate)(schema_1.guestIdHeaderSchema, "headers"), (0, validate_middleware_1.validate)(schema_1.addCartItemSchema, "body"), controller_1.addToCartController);
+router.patch("/update", (0, validate_middleware_1.validate)(schema_1.guestIdHeaderSchema, "headers"), (0, validate_middleware_1.validate)(schema_1.updateCartItemSchema, "body"), controller_1.updateCartItemController);
+router.delete("/remove", (0, validate_middleware_1.validate)(schema_1.guestIdHeaderSchema, "headers"), (0, validate_middleware_1.validate)(schema_1.removeCartItemSchema, "body"), controller_1.removeFromCartController);
+exports.default = router;
