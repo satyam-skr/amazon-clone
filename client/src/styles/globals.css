@@ -1,0 +1,136 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────────────────────────────────
+   Amazon Design System — CSS Custom Properties
+   ─────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    /* ── Surface ──────────────────────────────────── */
+    --background: #EAEDED;
+    --foreground: #0F1111;
+    --card: #FFFFFF;
+    --card-foreground: #0F1111;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F1111;
+
+    /* ── Brand ────────────────────────────────────── */
+    --primary: #FFD814;
+    --primary-foreground: #0F1111;
+    --secondary: #FFA41C;
+    --secondary-foreground: #0F1111;
+
+    /* ── Neutral ──────────────────────────────────── */
+    --muted: #F0F2F2;
+    --muted-foreground: #565959;
+    --accent: #EDFDFF;
+    --accent-foreground: #007185;
+
+    /* ── Danger ───────────────────────────────────── */
+    --destructive: #CC0C39;
+    --destructive-foreground: #FFFFFF;
+
+    /* ── Chrome ───────────────────────────────────── */
+    --border: #D5D9D9;
+    --input: #D5D9D9;
+    --ring: #E77600;
+    --radius: 8px;
+
+    /* ── Chart ────────────────────────────────────── */
+    --chart-1: #FF9900;
+    --chart-2: #146EB4;
+    --chart-3: #232F3E;
+    --chart-4: #007185;
+    --chart-5: #C7511F;
+
+    /* ── Sidebar ──────────────────────────────────── */
+    --sidebar: #232F3E;
+    --sidebar-foreground: #FFFFFF;
+    --sidebar-primary: #FF9900;
+    --sidebar-primary-foreground: #0F1111;
+    --sidebar-accent: #37475A;
+    --sidebar-accent-foreground: #FFFFFF;
+    --sidebar-border: #3B4B5B;
+    --sidebar-ring: #FF9900;
+  }
+
+  .dark {
+    --background: #131921;
+    --foreground: #E3E6E6;
+    --card: #1A242F;
+    --card-foreground: #E3E6E6;
+    --popover: #1A242F;
+    --popover-foreground: #E3E6E6;
+    --primary: #FFD814;
+    --primary-foreground: #0F1111;
+    --secondary: #FFA41C;
+    --secondary-foreground: #0F1111;
+    --muted: #232F3E;
+    --muted-foreground: #8D9096;
+    --accent: #37475A;
+    --accent-foreground: #C7F4DC;
+    --destructive: #FF4444;
+    --destructive-foreground: #FFFFFF;
+    --border: #3B4B5B;
+    --input: #3B4B5B;
+    --ring: #E77600;
+    --chart-1: #FF9900;
+    --chart-2: #4DABDB;
+    --chart-3: #5A6C7E;
+    --chart-4: #42B5C2;
+    --chart-5: #E08343;
+    --sidebar: #0F1111;
+    --sidebar-foreground: #E3E6E6;
+    --sidebar-primary: #FF9900;
+    --sidebar-primary-foreground: #0F1111;
+    --sidebar-accent: #1A242F;
+    --sidebar-accent-foreground: #E3E6E6;
+    --sidebar-border: #2A3A4A;
+    --sidebar-ring: #FF9900;
+  }
+
+  /* ── Font variables ───────────────────────────── */
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+
+  /* ── Global resets ────────────────────────────── */
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: 14px;
+    line-height: 1.375;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  /* ── Amazon-style link defaults ───────────────── */
+  a {
+    color: #007185;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #C7511F;
+    text-decoration: underline;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
